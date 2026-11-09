@@ -17,6 +17,14 @@
 5. Android API 34 아래 Pleos Connect 시스템 이미지 체크 → OK → 설치 → Finish
 6. Android Studio 재시작
 
+### 1-B. Update Site로 안 될 때: 수동 설치 (2026-11-07에 이 방법으로 설치함)
+SDK Manager 목록에 이미지가 안 뜨고 CLI도 "not found"면:
+1. 서버 XML에서 zip(`crp_car_arm64_emulator.zip`)을 받아 sha1 확인
+2. 디스크 여유 25GB 이상 확인 (압축 해제 18.6GB)
+3. `~/Library/Android/sdk/system-images/android-34/pleos_car_emulator/`에 압축 해제
+4. `crp_avd_out_arm64-v8a/` → `arm64-v8a/`로 이름 변경
+5. Android Studio 재시작
+
 ## 2. AVD 만들기
 1. Tools → Device Manager → Create device
 2. Form Factor: `Automotive` → Device: `Pleos Connect v2.1.0` → Next
