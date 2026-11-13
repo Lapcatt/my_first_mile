@@ -6,8 +6,12 @@
     <uses-permission android:name="pleos.car.permission.CAR_DRIVE" />
     <!-- 방향지시등 읽기 (Vehicle SDK, protection: normal) -->
     <uses-permission android:name="pleos.car.permission.CAR_LIGHTS" />
+    <!-- 화면 뒤에서도 차량 신호를 받기 위한 포그라운드 서비스 (Android 14+는 타입별 퍼미션 필요) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <application
+        android:name=".DriveCoachApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -28,6 +32,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".service.DriveCoachService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <!-- specialUse 타입은 용도 설명이 필수 (스토어 심사용) -->
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Real-time voice driving coach that monitors vehicle signals (steering, turn signal, brake, gear) while driving" />
+        </service>
     </application>
 
 </manifest>

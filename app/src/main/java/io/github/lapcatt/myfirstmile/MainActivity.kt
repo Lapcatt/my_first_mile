@@ -16,20 +16,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.lapcatt.myfirstmile.model.VehicleState
 import io.github.lapcatt.myfirstmile.ui.theme.DriveCoachTheme
-import io.github.lapcatt.myfirstmile.vehicle.VehicleSignalRepository
+import io.github.lapcatt.myfirstmile.service.DriveCoachService
 
 /**
- * 1단계: 차량 신호가 실제로 들어오는지 확인하는 화면.
- * 값은 Logcat(태그 VehicleSignal)과 화면 둘 다에 보인다.
+ * 차량 신호 확인 화면.
+ * 신호 수신은 DriveCoachService가 하고, 이 화면은 같은 Repository를 구독해 보여 주기만 한다.
+ * 화면을 닫거나 내비로 넘어가도 서비스는 계속 돈다.
  */
 class MainActivity : ComponentActivity() {
 
-    private lateinit var repository: VehicleSignalRepository
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        repository = VehicleSignalRepository(this)
-        repository.start()
+        DriveCoachService.start(this)
+        val repository = (application as DriveCoachApp).vehicleSignals
 
         setContent {
             DriveCoachTheme {
@@ -39,11 +38,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    override fun onDestroy() {
-        repository.stop()
-        super.onDestroy()
     }
 }
 

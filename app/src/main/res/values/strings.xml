@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">DriveCoach</string>
+    <string name="app_name">My First Mile</string>
+
+    <!-- 포그라운드 서비스 알림 -->
+    <string name="coach_channel_name">주행 코치</string>
+    <string name="coach_notification_title">주행 코치 동작 중</string>
+    <string name="coach_notification_text">운전 습관을 음성으로 안내합니다</string>
 </resources>
