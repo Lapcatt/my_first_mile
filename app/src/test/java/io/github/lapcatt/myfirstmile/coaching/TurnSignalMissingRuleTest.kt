@@ -86,6 +86,28 @@ class TurnSignalMissingRuleTest {
     }
 
     @Test
+    fun `깜빡이를 켜고 꺾다가 꺾은 채로 끄면 말하지 않는다`() {
+        // 에뮬레이터에서 발견 (2026-11-13): 회전 중 깜빡이를 끄자 "켜 주세요"가 나옴 → 오탐
+        val withSignal = bigLeftNoSignal.copy(turnSignal = TurnSignal.LEFT)
+        rule.evaluate(withSignal, 0)
+        rule.evaluate(withSignal, 5_000)
+        rule.evaluate(bigLeftNoSignal, 11_000) // 꺾은 채로 깜빡이 OFF
+        assertNull(rule.evaluate(bigLeftNoSignal, 12_000))
+        assertNull(rule.evaluate(bigLeftNoSignal, 30_000))
+    }
+
+    @Test
+    fun `깜빡이를 쓴 꺾음이 끝나면 다음 꺾음은 새로 본다`() {
+        val withSignal = bigLeftNoSignal.copy(turnSignal = TurnSignal.LEFT)
+        rule.evaluate(withSignal, 0)
+        rule.evaluate(bigLeftNoSignal, 1_000) // 꺾은 채로 끔 → 말하지 않음
+        rule.evaluate(straight, 2_000) // 꺾음 끝
+
+        rule.evaluate(bigLeftNoSignal, 3_000) // 새 꺾음, 깜빡이 없음
+        assertEquals(CoachingEvent.TURN_SIGNAL_MISSING, rule.evaluate(bigLeftNoSignal, 3_800))
+    }
+
+    @Test
     fun `기어 D가 아니면 말하지 않는다`() {
         for (gear in listOf(Gear.PARK, Gear.REVERSE, Gear.NEUTRAL, Gear.UNKNOWN, null)) {
             val r = TurnSignalMissingRule(config)

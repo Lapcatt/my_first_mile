@@ -40,8 +40,9 @@ class VehicleSignalRepository(context: Context) {
     // 리스너는 해제할 때 같은 객체를 넘겨야 해서 필드로 들고 있는다.
     private val steeringListener = object : SteeringWheelAngleListener {
         override fun onSteeringWheelAngleUpdated(angle: Float?) {
-            log("steering", angle)
-            _state.update { it.copy(steeringAngleDeg = angle?.let { a -> a * STEERING_SIGN }) }
+            val normalized = angle?.let { it * STEERING_SIGN }
+            log("steering", normalized) // 앱 기준(왼쪽 음수)으로 찍는다. Virtual Console 표시와 같음
+            _state.update { it.copy(steeringAngleDeg = normalized) }
         }
         override fun onFailed(e: Exception) = logError("steering", e)
     }
