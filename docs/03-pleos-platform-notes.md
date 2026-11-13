@@ -53,3 +53,23 @@
 - 심사·시상: https://appdevchallenge.auto-hmg.io/guide/judging-awards
 - 지원·제출: https://appdevchallenge.auto-hmg.io/guide/submission
 - 1차 가산점 APK 경로: `apk/팀명_앱이름_release.apk`, README에 앱 소개·실행 방법·테스트 환경
+
+## 에뮬레이터 내부 확인 (2026-11-13, adb)
+- `cmd car_service get-property-value`는 "requires non-user build"로 막힘 → 셸로 차량 속성값을 직접 못 읽음. 값 수신 확인은 앱으로 해야 함
+- 퍼미션 보호 수준 (`pm list permissions -f`, `dumpsys package permission`)
+  - `pleos.car.permission.CAR_DRIVE`, `CAR_LIGHTS`: normal (설치만으로 허용)
+  - `pleos.car.permission.PRIVATE_CAR_SAFETY`: **에뮬레이터에서는 normal** (SDK KDoc은 signature|privileged). 실차와 다를 수 있음
+  - `android.car.permission.CAR_SPEED`: **dangerous** → 런타임 권한 요청 필요
+  - `android.car.permission.CAR_POWERTRAIN`: normal
+- 설치된 Pleos 서비스: `ai.pleos.playground.service.vehicle`, `.service.navi`, `.service.location.fused`, `.service.adas`, `.caas`(SpeechService 제공), 내비 앱 `ai.umos.maps.android.navigation.app`
+  - ADAS 서비스 패키지가 있지만 공지 1에 따라 공모전 기간 SDK 미제공 → 사용 안 함
+
+## 1단계 앱으로 신호 수신 확인 (2026-11-13, Vehicle SDK 2.3.2, 에뮬레이터 v2.1.0)
+- 5개 모두 수신: 조향각, 방향지시등(LEFT/RIGHT/OFF), 브레이크(Boolean), 기어(P/D), 크루즈(longitudinal 모드 → ENABLED, ACTIVATED)
+- 조향각: 약 0.1~3초 간격으로 **같은 값이 반복** 전달됨 → 코칭은 값 변화 기준으로 처리해야 함
+- 조향각 부호: Virtual Console에서 **오른쪽** 회전(Console 540) → SDK **-540**. KDoc의 "왼쪽이 음수"와 반대. 왼쪽 회전 확인 필요
+- 기어·방향지시등·브레이크·크루즈는 시작 시 현재값이 오지 않고 **바뀔 때만** 옴 (기어는 시작 시 1회 옴)
+- **앱이 백그라운드로 가면 콜백이 멈춤** (내비 앱이 앞에 있던 6분간 0건). 앱을 다시 앞으로 가져오자 밀린 이벤트가 한 시각에 몰아서 전달됨 (순서도 섞임). Android cached app freezer로 추정
+  → 코칭은 포그라운드 서비스에서 돌려야 함
+- Virtual Console 상태(`/vehicle/state`)에 `controls.speed_kph`가 있음 → 차속은 Console 내부에 존재. 앱 수신 여부는 미확인 (조작 목록 catalog에는 PERF_VEHICLE_SPEED 없음)
+- 방향지시등은 기본 화면이 아니라 Virtual Console의 **Test Console** 패널에 있음
