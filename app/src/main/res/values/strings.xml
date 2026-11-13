@@ -8,4 +8,5 @@
 
     <!-- 음성 안내 문장 (CLAUDE.md: 음성 멘트는 strings.xml) -->
     <string name="voice_coach_started">주행 코치를 시작합니다.</string>
+    <string name="voice_turn_signal_first">방향지시등을 먼저 켜 주세요.</string>
 </resources>

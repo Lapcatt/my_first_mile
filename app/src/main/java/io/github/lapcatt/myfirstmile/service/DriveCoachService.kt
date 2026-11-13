@@ -9,12 +9,22 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import android.os.SystemClock
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import io.github.lapcatt.myfirstmile.DriveCoachApp
 import io.github.lapcatt.myfirstmile.R
+import io.github.lapcatt.myfirstmile.coaching.CoachingEngine
+import io.github.lapcatt.myfirstmile.coaching.CoachingEvent
 import io.github.lapcatt.myfirstmile.voice.VoiceCoach
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 /**
  * 주행 중 차량 신호를 계속 받기 위한 포그라운드 서비스.
@@ -28,6 +38,10 @@ class DriveCoachService : Service() {
 
     private val repository get() = (application as DriveCoachApp).vehicleSignals
     private lateinit var voice: VoiceCoach
+    private val engine = CoachingEngine()
+
+    // 서비스 수명에 묶인 코루틴 범위. onDestroy에서 취소한다.
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     override fun onCreate() {
         super.onCreate()
@@ -49,6 +63,31 @@ class DriveCoachService : Service() {
         voice = VoiceCoach(this)
         voice.start()
         voice.speak(getString(R.string.voice_coach_started))
+
+        startCoachingLoop()
+    }
+
+    /**
+     * 일정 간격으로 최신 차량 상태를 코칭 엔진에 넣는다.
+     *
+     * 왜 "값이 바뀔 때"가 아니라 주기적으로 보나: 규칙 1은 "0.8초 동안 계속"을 본다.
+     * 핸들을 꺾은 채 가만히 있으면 새 값이 안 와도 시간은 흐르므로, 시간 기준으로 다시 봐야 한다.
+     */
+    private fun startCoachingLoop() {
+        scope.launch {
+            while (isActive) {
+                val event = engine.evaluate(repository.state.value, SystemClock.elapsedRealtime())
+                if (event != null) {
+                    Log.d(TAG, "coaching: $event")
+                    voice.speak(getString(event.messageRes()))
+                }
+                delay(EVAL_INTERVAL_MS)
+            }
+        }
+    }
+
+    private fun CoachingEvent.messageRes(): Int = when (this) {
+        CoachingEvent.TURN_SIGNAL_MISSING -> R.string.voice_turn_signal_first
     }
 
     // 시스템이 서비스를 죽였다가 다시 살릴 수 있으면 다시 시작한다.
@@ -56,6 +95,7 @@ class DriveCoachService : Service() {
 
     override fun onDestroy() {
         Log.d(TAG, "onDestroy")
+        scope.cancel()
         voice.release()
         repository.stop()
         super.onDestroy()
@@ -85,6 +125,7 @@ class DriveCoachService : Service() {
         private const val TAG = "DriveCoachService"
         private const val CHANNEL_ID = "drive_coach"
         private const val NOTIFICATION_ID = 1
+        private const val EVAL_INTERVAL_MS = 200L
 
         fun start(context: Context) {
             ContextCompat.startForegroundService(
