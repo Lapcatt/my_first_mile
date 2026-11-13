@@ -11,8 +11,24 @@
 - 사용 예정 API: SteeringWheel(조향각), TurnSignal, Brake(페달), DrivingMode(크루즈), Safety(Telltales) (2026-11-02)
 - 비동기 콜백. 콜백 끝나기 전 `release()` 금지. 사용 전 `checkXXXCapabilities` (2026-11-02)
 - `VehicleSpeedListener` 제거됨 → 차속은 AAOS `CarPropertyManager` (2026-11-02)
-- 차선·후측방 API 없음. ADAS SDK는 현재 목록에서 빠짐 (2026-11-02)
+- 차선·후측방 API 없음. ADAS SDK는 현재 목록에서 빠짐 (2026-11-02). 공지 1(2026-11-12): 미공개 SDK는 공모전 기간 제공 안 됨
 - 공식 문서: https://document.pleos.ai/docs/pleos-only/connect-sdk-pleos/Vehicle/intro
+
+### SDK 소스에서 확인한 것 (2026-11-12, `Vehicle-2.3.2-sources.jar`, 패키지 `ai.pleos.playground.vehicle`)
+공식 문서가 아니라 라이브러리 소스·KDoc 기준. 문서와 다르면 문서를 우선하고 여기 고친다.
+| API | 메서드 / 리스너 | 값 | 퍼미션 (KDoc) |
+|---|---|---|---|
+| `SteeringWheel` | `registerSteeringWheelAngle(SteeringWheelAngleListener)` → `onSteeringWheelAngleUpdated(angle: Float?)` | **앞바퀴 조향각(도)**, 왼쪽이 음수. 핸들 회전각 아님 | `CAR_DRIVE` (normal) |
+| `TurnSignal` | `registerTurnSignalState` → `TurnSignalValue` | `OFF / RIGHT / LEFT` | `CAR_LIGHTS` (normal) |
+| `Brake` | `registerBrakePedalStatus` → `Boolean?` | **밟음 여부만**. 압력·퍼센트 없음 | `CAR_DRIVE` (normal) |
+| `DrivingMode` | `registerCruiseControlState` → `CruiseControl` | `OTHER / ENABLED / ACTIVATED / USER_OVERRIDE / SUSPENDED / FORCED_DEACTIVATION_WARNING` | `CAR_DRIVE` (normal) |
+| `Gear` | `registerGearSelection(GearSelectionListener)` → `VehicleGear` | `GEAR_UNKNOWN / NEUTRAL / REVERSE / PARK / DRIVE` | `CAR_DRIVE` (normal) |
+| `Safety` | `registerTelltales(TelltaleInfoListener)` → `Telltales` (`TelltaleData(type, state, color, priority, warningCount)`) | `TelltaleState`: `OFF / ON / BLINK` | **`PRIVATE_CAR_SAFETY` (signature\|privileged)** → 서드파티 앱이 받을 수 있는지 [미확인] |
+
+- `TelltaleType` 전체(92개): PARKING_BRAKE, ELECTRONIC_PARKING_BRAKE, SEAT_BELT, DOOR_OPEN, ABS, MDPS, TPMS, LOW_VOLT_BATTERY, ESC, ESC_OFF, AIRBAG, AFS, MASTER_WARNING, AUTO_HOLD, AUTO_HIGH_BEAM, HEADLAMP_LOW/HIGH, POSITION_LAMP, FRONT/REAR_FOG_LAMP, ENGINE_OIL_PRESSURE, ENGINE_TEMPERATURE, EMERGENCY_CALL, EV_SYSTEM, POWER_DOWN, RBS, IMMOBILIZER, ENGINE, LED_HEADLAMP, PREHEAT, PARTICLE_FILTER, H2_SENSOR, H2_LEAK, PASSENGER_AIRBAG_OFF/ON, TURN_SIGNAL_LEFT/RIGHT, ICY_ROAD, OVER_SPEED, WATER_SEPARATOR, SCR, LOW_EV_BATTERY, HEV/FCEV/EREV_SYSTEM, LPI, EV_CHARGING_CONNECTOR, AWD_LOCK, HEV_MODE, ISG, DBC, REV, XEV_READY, I_PEDAL, LOW_FUEL, LOW_FUEL_FCEV, EV_BATTERY_CONDITIONING, TRUNK_OPEN, CHILD_PRESENCE_DETECTION_OFF, DRIVE_MODE(+SPORT/ECO/COMFORT/TERRAIN), FORCED_ALL_WHEEL_DRIVE, FOUR_WHEEL_DRIVE_MODE_2H/4A/4H/4L, TOW_MODE, ESC_SPORT, CREEP_OFF, DRIFT/TRACK/UTILITY_MODE, GREEN_ZONE, PHEV_MODE(+HEV/AUTO/EV_PLUS), EREV_MODE, LAUNCH_MODE, ACCEL_RESPONSE_DASH/ACCEL, N_BATTERY_DRAG/SPRINT/ENDURANCE, **FCA(300), LKA(301), LFA(302), LCA_LEFT, LCA_RIGHT, ELK, ICC, DRIVER_ATTENTION**
+  - 차선·충돌 관련 경고등 값은 **있다** (FCA·LKA·LFA·LCA·ELK). 단 퍼미션이 PRIVATE라 쓸 수 있는지는 에뮬레이터에서 확인 필요.
+- 차속: Vehicle SDK 공개 API에 없음. 내부 `PleosPropertyIds`에 `PERF_VEHICLE_SPEED`가 있지만 외부로 노출되는 메서드 없음 → AAOS `CarPropertyManager` 경로 그대로 [미확인]
+- `Display.getCurrentSpeedDisplayUnit()`로 속도 **단위**(km/h·mph)만 읽을 수 있음
 
 ## TTS / STT
 - ON_DEVICE 모드면 네트워크·앱 등록 불필요 (2026-11-02)
@@ -21,7 +37,7 @@
 - 오디오 포커스: https://document.pleos.ai/docs/pleos-only/vehicle-app-developer-guide/audio-focus-development-guide/audio-focus-development
 
 ## 에뮬레이터
-- Pleos Connect Emulator v2.1.0, API 34. 설치 절차는 [02-emulator-setup.md](02-emulator-setup.md) (2026-11-07)
+- Pleos Connect Emulator v2.1.0, API 34, 화면 2560×1440 · 160dpi · 12.8" (2026-11-13 `adb shell wm size/density`). 설치 절차는 [02-emulator-setup.md](02-emulator-setup.md) (2026-11-07)
 - 앱 minSdk 28 이상 필수 (차량 보안 서명키 교체·lineage 때문) (2026-11-07)
 - Gradle 8.0 이상 (2026-11-07)
 - Cold boot 필수. Quick boot면 VHAL 비활성 (2026-11-07)
