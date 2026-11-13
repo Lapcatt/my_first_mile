@@ -5,4 +5,7 @@
     <string name="coach_channel_name">주행 코치</string>
     <string name="coach_notification_title">주행 코치 동작 중</string>
     <string name="coach_notification_text">운전 습관을 음성으로 안내합니다</string>
+
+    <!-- 음성 안내 문장 (CLAUDE.md: 음성 멘트는 strings.xml) -->
+    <string name="voice_coach_started">주행 코치를 시작합니다.</string>
 </resources>

@@ -14,6 +14,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import io.github.lapcatt.myfirstmile.DriveCoachApp
 import io.github.lapcatt.myfirstmile.R
+import io.github.lapcatt.myfirstmile.voice.VoiceCoach
 
 /**
  * 주행 중 차량 신호를 계속 받기 위한 포그라운드 서비스.
@@ -26,6 +27,7 @@ import io.github.lapcatt.myfirstmile.R
 class DriveCoachService : Service() {
 
     private val repository get() = (application as DriveCoachApp).vehicleSignals
+    private lateinit var voice: VoiceCoach
 
     override fun onCreate() {
         super.onCreate()
@@ -42,6 +44,11 @@ class DriveCoachService : Service() {
             startForeground(NOTIFICATION_ID, buildNotification())
         }
         repository.start()
+
+        // 2단계 확인용: 서비스가 뜨면 한 문장 말한다.
+        voice = VoiceCoach(this)
+        voice.start()
+        voice.speak(getString(R.string.voice_coach_started))
     }
 
     // 시스템이 서비스를 죽였다가 다시 살릴 수 있으면 다시 시작한다.
@@ -49,6 +56,7 @@ class DriveCoachService : Service() {
 
     override fun onDestroy() {
         Log.d(TAG, "onDestroy")
+        voice.release()
         repository.stop()
         super.onDestroy()
     }

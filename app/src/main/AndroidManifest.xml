@@ -6,6 +6,8 @@
     <uses-permission android:name="pleos.car.permission.CAR_DRIVE" />
     <!-- 방향지시등 읽기 (Vehicle SDK, protection: normal) -->
     <uses-permission android:name="pleos.car.permission.CAR_LIGHTS" />
+    <!-- 음성 안내 (TextToSpeech SDK, 모든 TTS API에 필요) -->
+    <uses-permission android:name="pleos.car.permission.TTS_SERVICE" />
     <!-- 화면 뒤에서도 차량 신호를 받기 위한 포그라운드 서비스 (Android 14+는 타입별 퍼미션 필요) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
