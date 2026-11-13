@@ -41,7 +41,7 @@ class VehicleSignalRepository(context: Context) {
     private val steeringListener = object : SteeringWheelAngleListener {
         override fun onSteeringWheelAngleUpdated(angle: Float?) {
             log("steering", angle)
-            _state.update { it.copy(steeringAngleDeg = angle) }
+            _state.update { it.copy(steeringAngleDeg = angle?.let { a -> a * STEERING_SIGN }) }
         }
         override fun onFailed(e: Exception) = logError("steering", e)
     }
@@ -108,6 +108,13 @@ class VehicleSignalRepository(context: Context) {
 
     companion object {
         const val TAG = "VehicleSignal"
+
+        /**
+         * SDK 조향각을 앱 규칙(왼쪽 음수, 오른쪽 양수)으로 맞추는 부호.
+         * 에뮬레이터 v2.1.0 실측: 왼쪽 끝 +540, 오른쪽 끝 -540 (SDK 문서와 반대, 2026-11-13).
+         * 실차에서 반대로 나오면 이 값만 1f로 바꾼다.
+         */
+        private const val STEERING_SIGN = -1f
     }
 }
 
