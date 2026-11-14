@@ -110,3 +110,9 @@
 - **미확인**: 차가 움직일 때 `distance`가 "다음 회전까지 남은 거리"로 줄어드는지 (정지 상태에서만 받음). 회전 예고 타이밍 결정에 필요
 - `RouteInfo`의 poiId·address는 빈 문자열로도 경로 탐색 성공
 - 앱 서비스(exported=false)는 `adb am start-foreground-service`로 호출 불가 (정상)
+
+## Virtual Console 차속 조작 확인 (2026-11-14)
+- 콘솔 조작 API는 **브라우저 콘솔 페이지가 열려 있을 때만** 받는다. 페이지가 1초마다 `POST /browser/session` 하트비트를 보내고, 끊기면 모든 PUT이 `emulator_inactive` (state의 `browser.timeout_ms: 3000`). 에뮬레이터를 켠 뒤 `scripts/vc.sh`로 페이지를 먼저 연다
+- 차속은 콘솔 페이지의 ACCEL/BRAKE(고속도로 화면)로 바뀐다. 페이지가 계산한 값을 `PUT /vehicle/controls?speed=&accelerator=&brake=`로 140ms마다 보낸다
+- 콘솔 `speed_kph`와 차량 `PERF_VEHICLE_SPEED`가 일치함 (88 km/h ↔ 24.44 m/s, `dumpsys car_service`의 lastEvent로 확인). 앱의 CarPropertyManager 수신은 앞 절에서 확인함
+- 주의: 페이지가 열려 있으면 페이지 자체의 주행 계산이 curl로 보낸 speed 값을 곧바로 덮어쓴다. 차속 시연은 페이지 버튼으로 하거나, 자동화하려면 페이지를 닫고 하트비트를 직접 보내야 함 [미확인]
