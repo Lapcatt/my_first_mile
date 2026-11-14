@@ -86,3 +86,13 @@
   - 실제 앱에서는 런타임 권한 요청 화면이 필요 (주행 중엔 띄우면 안 되므로 P단 최초 실행 시)
 - 기어는 `CAR_POWERTRAIN`(normal)만으로 `GEAR_SELECTION`, `CURRENT_GEAR`도 보임 (Pleos Gear API와 별개 경로)
 - Virtual Console 조작 API는 **PUT**으로 보내야 함 (POST는 `emulator_inactive`). 예: `PUT /vehicle/turn-signal?mode=BlinkLeft`, `PUT /vehicle/gear?gear=Drive`, `PUT /vehicle/controls?steering=-180`
+
+## 경고등(Telltales) 수신 확인 (2026-11-14, 임시 시험 코드 → 확인 후 삭제)
+- `Safety.registerTelltales` + `pleos.car.permission.PRIVATE_CAR_SAFETY` 선언 → **수신 성공** (에뮬레이터에서 normal 권한)
+  - `checkTelltalesCapabilities` → `CapabilityConfig(accessType=READ)`
+  - 콜백마다 **현재 켜져 있는 경고등 전체 목록**이 옴 (`TelltaleData(type, state, color, priority, warningCount)`). 꺼진 항목은 목록에서 빠짐
+  - 예: TPMS On → [TPMS], SeatBelt On → [SEAT_BELT, TPMS], TPMS Off → [SEAT_BELT]
+- Virtual Console에서 켤 수 있는 경고등은 37종 (`PUT /vehicle/telltales/simulator?type=TPMS&state=On&color=Red`)
+  - ParkingBrake, ElectronicParkingBrake, SeatBelt, DoorOpen, ABS, MDPS, TPMS, LowVoltBattery, ESC, ESCOff, Airbag, AFS, MasterWarning, AutoHold, AutoHighBeam, HeadlampLow/High, PositionLamp, Front/RearFogLamp, EngineOilPressure, EngineTemperature, EmergencyCall, EVSystem, PowerDown, RBS, Immobilizer, Engine, LEDHeadlamp, Preheat, ParticleFilter, H2Sensor, H2Leak, PassengerAirbagOff/On, TurnSignalLeft/Right
+  - **차로·충돌·후측방(FCA, LKA, LFA, LCA, ELK)은 Console에 없음** → SDK enum에는 있지만 에뮬레이터에서 켜 볼 방법 없음
+- 실차에서 PRIVATE_CAR_SAFETY가 서드파티 앱에 허용되는지는 여전히 미확인 (KDoc은 signature|privileged)
