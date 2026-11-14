@@ -1,7 +1,7 @@
 # Pleos 플랫폼 노트
 
 확인한 사실만 적는다. 각 항목에 출처와 확인 날짜를 남긴다.
-모르는 건 [05-open-questions.md](05-open-questions.md)로.
+모르는 건 미확인 질문 목록에 따로 모은다.
 
 ## Vehicle SDK
 - 의존성: `ai.pleos.playground:Vehicle:2.3.2` (2026-11-07, 빌드에서 resolve 성공)
