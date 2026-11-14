@@ -75,3 +75,14 @@
   → **해결 확인**: `DriveCoachService`(foregroundServiceType=specialUse)로 옮긴 뒤, 내비 앱이 앞에 있어도 방향지시등·브레이크·조향각이 조작 시각에 실시간 수신됨 (2026-11-13)
 - Virtual Console 상태(`/vehicle/state`)에 `controls.speed_kph`가 있음 → 차속은 Console 내부에 존재. 앱 수신 여부는 미확인 (조작 목록 catalog에는 PERF_VEHICLE_SPEED 없음)
 - 방향지시등은 기본 화면이 아니라 Virtual Console의 **Test Console** 패널에 있음
+
+## 시동 상태·차속 확인 (2026-11-14, 임시 시험 코드 → 확인 후 삭제)
+- 방법: `useLibrary("android.car")` + `CarPropertyManager`로 `IGNITION_STATE`, `PERF_VEHICLE_SPEED` 구독
+- **시동 상태(IGNITION_STATE): 사용 불가.** car_service 속성 목록에 아예 없음(VHAL 미지원). Vehicle SDK에도 `IgnitionState` enum만 있고 구독 메서드는 공개 안 됨
+  - Virtual Console에는 "Power System Actual"(Off/Ready/On/Driving) 조작이 있으나 앱이 받을 수 있는 차량 속성으로 연결되지 않음 (catalog의 car_property 비어 있음)
+- **차속(PERF_VEHICLE_SPEED): 수신 가능.** `android.car.permission.CAR_SPEED`(dangerous) 필요
+  - 이 에뮬레이터는 멀티유저(현재 사용자 10). `adb shell pm grant`는 `--user 10`을 붙여야 적용됨
+  - 단위 m/s(Float). 권한 허용 후 `PERF_VEHICLE_SPEED`, `PERF_VEHICLE_SPEED_DISPLAY`, `WHEEL_TICK`가 보이게 됨
+  - 실제 앱에서는 런타임 권한 요청 화면이 필요 (주행 중엔 띄우면 안 되므로 P단 최초 실행 시)
+- 기어는 `CAR_POWERTRAIN`(normal)만으로 `GEAR_SELECTION`, `CURRENT_GEAR`도 보임 (Pleos Gear API와 별개 경로)
+- Virtual Console 조작 API는 **PUT**으로 보내야 함 (POST는 `emulator_inactive`). 예: `PUT /vehicle/turn-signal?mode=BlinkLeft`, `PUT /vehicle/gear?gear=Drive`, `PUT /vehicle/controls?steering=-180`
