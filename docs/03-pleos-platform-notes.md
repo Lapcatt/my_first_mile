@@ -96,3 +96,17 @@
   - ParkingBrake, ElectronicParkingBrake, SeatBelt, DoorOpen, ABS, MDPS, TPMS, LowVoltBattery, ESC, ESCOff, Airbag, AFS, MasterWarning, AutoHold, AutoHighBeam, HeadlampLow/High, PositionLamp, Front/RearFogLamp, EngineOilPressure, EngineTemperature, EmergencyCall, EVSystem, PowerDown, RBS, Immobilizer, Engine, LEDHeadlamp, Preheat, ParticleFilter, H2Sensor, H2Leak, PassengerAirbagOff/On, TurnSignalLeft/Right
   - **차로·충돌·후측방(FCA, LKA, LFA, LCA, ELK)은 Console에 없음** → SDK enum에는 있지만 에뮬레이터에서 켜 볼 방법 없음
 - 실차에서 PRIVATE_CAR_SAFETY가 서드파티 앱에 허용되는지는 여전히 미확인 (KDoc은 signature|privileged)
+
+## NaviHelper 회전 안내(TBT) 수신 확인 (2026-11-14, 임시 시험 코드 → 확인 후 삭제)
+- 의존성 `ai.pleos.playground:NaviHelper:3.0.5` (+ navi-aidl, navi-data). 퍼미션 `pleos.car.permission.NAVI_ROUTE`(정보 조회), `NAVI_ROUTE_SEARCH`(경로 요청)
+- 공식 문서의 API 상세 페이지(TBTInfo, 리스너 시그니처)는 본문이 비어 있어 AAR을 javap로 확인:
+  - `NaviHelper(context)` → `initialize(onConnected, onFailed)` → `addListener(NaviHelperEventListener)` → `getTBTInfo()` / `requestRoute(RouteInfo)`
+  - `NaviHelperEventListener.onTBTInfo(List<TBTInfo>)` (default 메서드라 필요한 것만 override)
+  - `TBTInfo(type: TurnType, distance: Double, description: String)`
+  - `TurnType` 45종: TURN_LEFT/RIGHT/STRAIGHT, KEEP_L/R, SHARP_L/R, UTURN, ENTER/EXIT_IC_*, ENTER/AVOID_UNDER/OVER_*, ROUNDABOUT_*, ARRIVE, TUNNEL, TOLL, SERVICEAREA, RESTAREA 등
+- 결과: 경로가 없으면 `TBT: []`. `requestRoute` 후 `onRouteStarted` → `NavigationStatus.ROUTE_DRIVE` → **TBT 목록 수신**
+  - 예 (강남역 근처 좌표): 우회전 700m 대왕판교IC 방면 → 우회전 50m → IC 진입 → 톨게이트 → IC 진출 10km → 좌회전 450m 서초구청 → 우회전 1.5km 강남역 방면 → 도착
+  - 에뮬레이터 현재 위치는 문서 예시 목적지(42dot)에서 약 50m (판교 쪽으로 보임)
+- **미확인**: 차가 움직일 때 `distance`가 "다음 회전까지 남은 거리"로 줄어드는지 (정지 상태에서만 받음). 회전 예고 타이밍 결정에 필요
+- `RouteInfo`의 poiId·address는 빈 문자열로도 경로 탐색 성공
+- 앱 서비스(exported=false)는 `adb am start-foreground-service`로 호출 불가 (정상)
