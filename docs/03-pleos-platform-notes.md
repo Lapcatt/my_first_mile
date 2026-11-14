@@ -116,3 +116,7 @@
 - 차속은 콘솔 페이지의 ACCEL/BRAKE(고속도로 화면)로 바뀐다. 페이지가 계산한 값을 `PUT /vehicle/controls?speed=&accelerator=&brake=`로 140ms마다 보낸다
 - 콘솔 `speed_kph`와 차량 `PERF_VEHICLE_SPEED`가 일치함 (88 km/h ↔ 24.44 m/s, `dumpsys car_service`의 lastEvent로 확인). 앱의 CarPropertyManager 수신은 앞 절에서 확인함
 - 주의: 페이지가 열려 있으면 페이지 자체의 주행 계산이 curl로 보낸 speed 값을 곧바로 덮어쓴다. 차속 시연은 페이지 버튼으로 하거나, 자동화하려면 페이지를 닫고 하트비트를 직접 보내야 함 [미확인]
+
+## 에뮬레이터 인터넷 연결 확인 (2026-11-14)
+- 기본 네트워크 VALIDATED (eth0 10.0.2.15, 셀룰러로 표시), `ping script.google.com` 응답 정상
+- 앱 프로세스에서 HTTPS 요청은 아직 안 해 봄 (리포트 이메일 발송을 구현할 때 확인). INTERNET 퍼미션은 TTS SDK 매니페스트에서 이미 병합됨
