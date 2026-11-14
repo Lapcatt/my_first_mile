@@ -22,3 +22,13 @@ secrets.properties
 
 # 접수양식 작성본 (개인정보 포함)
 docs/submission/
+
+# 비공개 작업 문서 (공모전 전략·내부 메모·AI 작업 지침·IDE/도구 개인 설정)
+CLAUDE.md
+.claude/
+.idea/
+docs/00-plan-summary.md
+docs/01-contest-rules.md
+docs/05-open-questions.md
+docs/07-submission-checklist.md
+docs/08-positioning.md
